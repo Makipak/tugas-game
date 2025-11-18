@@ -1,50 +1,240 @@
-# Welcome to your Expo app 👋
+# 🎮 Pemecah Bata - Game Breakout Sederhana
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Game Breakout/Brick Breaker klasik yang dibuat dengan React Native dan Expo. Hancurkan semua bata dengan bola yang memantul!
 
-## Get started
+![Game Screenshot](https://via.placeholder.com/400x800/1a1a2e/ffffff?text=Pemecah+Bata+Game)
 
-1. Install dependencies
+## 📋 Daftar Isi
 
+- [Fitur](#-fitur)
+- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
+- [Persyaratan](#-persyaratan)
+- [Instalasi](#-instalasi)
+- [Cara Menjalankan](#-cara-menjalankan)
+- [Cara Bermain](#-cara-bermain)
+- [Struktur Proyek](#-struktur-proyek)
+- [Fitur Game](#-fitur-game)
+- [Kontribusi](#-kontribusi)
+- [Lisensi](#-lisensi)
+
+## ✨ Fitur
+
+- 🎯 **Gameplay Klasik**: Game Breakout yang menyenangkan dan adiktif
+- 🎨 **Visual Menarik**: Desain modern dengan warna-warna cerah
+- 📊 **Sistem Skor**: Skor dan skor tertinggi yang tersimpan
+- 🎮 **Level System**: Level meningkat otomatis saat semua bata hancur
+- 📱 **Responsif**: Dapat dimainkan di Android, iOS, dan Web
+- 🎪 **Kontrol Mudah**: Geser jari untuk menggerakkan papan
+- 🌈 **Bata Berwarna**: Setiap baris bata memiliki warna berbeda
+
+## 🛠 Teknologi yang Digunakan
+
+- **React Native**: Framework untuk membangun aplikasi mobile
+- **Expo**: Platform untuk pengembangan React Native
+- **TypeScript**: Bahasa pemrograman dengan type safety
+- **Animated API**: Untuk animasi yang halus
+- **React Hooks**: Untuk manajemen state
+
+## 📦 Persyaratan
+
+Sebelum memulai, pastikan Anda telah menginstall:
+
+- **Node.js** (versi 16 atau lebih tinggi)
+- **npm** atau **yarn**
+- **Expo CLI**: `npm install -g expo-cli`
+- **Expo Go** (untuk testing di mobile): Download dari [App Store](https://apps.apple.com/app/expo-go/id982107779) atau [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
+
+## 🚀 Instalasi
+
+1. **Clone repository ini**
+   ```bash
+   git clone https://github.com/edisuherlan/game-tetris-pemecah_bata-sederhana.git
+   cd game-tetris-pemecah_bata-sederhana
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
-
-2. Start the app
-
+   atau
    ```bash
-   npx expo start
+   yarn install
    ```
 
-In the output, you'll find options to open the app in a
+## ▶️ Cara Menjalankan
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Development Mode
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+1. **Jalankan development server**
+   ```bash
+   npm start
+   ```
+   atau
+   ```bash
+   yarn start
+   ```
 
-## Get a fresh project
+2. **Pilih platform yang ingin digunakan:**
+   - Tekan `a` untuk Android
+   - Tekan `i` untuk iOS (hanya macOS)
+   - Tekan `w` untuk Web
+   - Scan QR code dengan Expo Go app di smartphone Anda
 
-When you're ready, run:
+### Build untuk Production
 
+#### Android
 ```bash
-npm run reset-project
+npm run android
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+#### iOS (hanya macOS)
+```bash
+npm run ios
+```
 
-## Learn more
+#### Web
+```bash
+npm run web
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🎮 Cara Bermain
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. **Mulai Game**: Ketuk layar untuk memulai permainan
+2. **Gerakkan Papan**: Geser jari di layar untuk menggerakkan papan ke kiri atau kanan
+3. **Hancurkan Bata**: Pantulkan bola ke bata untuk menghancurkannya
+4. **Jangan Biarkan Bola Jatuh**: Jaga bola agar tetap memantul di layar
+5. **Kumpulkan Skor**: Setiap bata yang hancur memberikan 10 poin
+6. **Naik Level**: Hancurkan semua bata untuk naik ke level berikutnya
 
-## Join the community
+### Tips Bermain
 
-Join our community of developers creating universal apps.
+- ⚡ **Gunakan Sudut**: Pantulkan bola dengan sudut yang berbeda untuk mencapai bata yang sulit dijangkau
+- 🎯 **Aim dengan Tepat**: Posisi papan saat bola memantul menentukan arah bola
+- 🏆 **Fokus pada Bata**: Prioritaskan menghancurkan semua bata daripada hanya menjaga bola tetap hidup
+- 💪 **Latihan**: Semakin sering bermain, semakin baik kontrol Anda
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📁 Struktur Proyek
+
+```
+game-tetris-pemecah_bata-sederhana/
+├── app/
+│   ├── (tabs)/
+│   │   └── index.tsx          # File utama game
+│   └── _layout.tsx            # Layout aplikasi
+├── assets/                    # Gambar dan resources
+├── components/                # Komponen reusable
+├── constants/                 # Konstanta aplikasi
+├── hooks/                     # Custom hooks
+├── package.json              # Dependencies
+├── tsconfig.json             # Konfigurasi TypeScript
+└── README.md                 # Dokumentasi
+```
+
+## 🎯 Fitur Game
+
+### Gameplay Mechanics
+
+- **Fisika Bola**: Bola memantul dengan realistis dari dinding, papan, dan bata
+- **Collision Detection**: Deteksi tabrakan yang akurat untuk semua elemen
+- **Sudut Pantulan**: Sudut pantulan berdasarkan posisi tumbukan di papan
+- **Kecepatan Dinamis**: Kecepatan bola tetap konsisten untuk gameplay yang adil
+
+### Sistem Skor
+
+- **Skor**: +10 poin per bata yang hancur
+- **Skor Tertinggi**: Tersimpan otomatis selama sesi permainan
+- **Level**: Meningkat otomatis saat semua bata hancur
+
+### Visual Design
+
+- **Bata Berwarna**: Setiap baris memiliki warna berbeda
+  - Baris 1: Merah (#ff6b6b)
+  - Baris 2: Cyan (#4ecdc4)
+  - Baris 3: Biru (#45b7d1)
+  - Baris 4: Kuning (#f9ca24)
+  - Baris 5: Ungu (#6c5ce7)
+- **Background Gelap**: Background hitam untuk kontras yang baik
+- **Animasi Halus**: Menggunakan Animated API untuk transisi yang mulus
+
+## 🎨 Konfigurasi Game
+
+Anda dapat mengubah konstanta game di file `app/(tabs)/index.tsx`:
+
+```typescript
+const BALL_SIZE = 20;              // Ukuran bola
+const PADDLE_WIDTH = 120;          // Lebar papan
+const PADDLE_HEIGHT = 15;          // Tinggi papan
+const BRICK_WIDTH = 70;            // Lebar bata
+const BRICK_HEIGHT = 30;           // Tinggi bata
+const BRICK_ROWS = 5;              // Jumlah baris bata
+const BRICK_COLS = 5;              // Jumlah kolom bata
+const BALL_SPEED = 6;              // Kecepatan bola
+```
+
+## 🐛 Troubleshooting
+
+### Masalah Umum
+
+1. **Game tidak bisa dimulai**
+   - Pastikan semua dependencies terinstall: `npm install`
+   - Restart development server: `npm start`
+
+2. **Papan tidak bisa digerakkan**
+   - Pastikan game sudah dimulai (tap layar untuk mulai)
+   - Coba restart aplikasi
+
+3. **Bola tidak memantul dengan benar**
+   - Pastikan collision detection bekerja dengan baik
+   - Periksa konstanta kecepatan bola
+
+## 🤝 Kontribusi
+
+Kontribusi sangat diterima! Jika Anda ingin berkontribusi:
+
+1. Fork repository ini
+2. Buat branch fitur baru (`git checkout -b fitur/AmazingFeature`)
+3. Commit perubahan Anda (`git commit -m 'Menambahkan fitur AmazingFeature'`)
+4. Push ke branch (`git push origin fitur/AmazingFeature`)
+5. Buka Pull Request
+
+### Ide Kontribusi
+
+- 🎵 Menambahkan efek suara
+- 🎨 Menambahkan lebih banyak variasi warna bata
+- 💎 Menambahkan power-up (bola lebih besar, papan lebih lebar, dll)
+- 🏆 Menambahkan leaderboard online
+- 📱 Menambahkan mode multiplayer
+- 🎯 Menambahkan mode tantangan khusus
+
+## 📝 Changelog
+
+### Version 1.0.0 (Current)
+- ✅ Gameplay dasar Breakout
+- ✅ Sistem skor dan level
+- ✅ Kontrol dengan geser jari
+- ✅ Bata berwarna-warni
+- ✅ UI dalam bahasa Indonesia
+
+## 📄 Lisensi
+
+Proyek ini menggunakan lisensi MIT. Lihat file `LICENSE` untuk detail lebih lanjut.
+
+## 👤 Author
+
+**Edisuherlan**
+- GitHub: [@edisuherlan](https://github.com/edisuherlan)
+- Repository: [game-tetris-pemecah_bata-sederhana](https://github.com/edisuherlan/game-tetris-pemecah_bata-sederhana)
+
+## 🙏 Acknowledgments
+
+- Terinspirasi dari game Breakout klasik
+- Dibuat dengan React Native dan Expo
+- Menggunakan TypeScript untuk type safety
+
+## 📞 Support
+
+Jika Anda memiliki pertanyaan atau menemukan bug, silakan buka [issue](https://github.com/edisuherlan/game-tetris-pemecah_bata-sederhana/issues) di repository ini.
+
+---
+
+⭐ Jika Anda menyukai proyek ini, jangan lupa berikan star di GitHub!
