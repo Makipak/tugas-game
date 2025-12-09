@@ -2,10 +2,9 @@
  * ============================================
  * WATERMARK DEVELOPER
  * ============================================
- * Nama        : Edi Suherlan
- * GitHub      : github/edisuherlan
- * Email       : audhighasu@gmail.com
- * Website     : audhighasu.com
+ * Nama        : muhamad farhan qolbi
+ * GitHub      : github/makipak
+ * Email       : muhamadfarhanqolbi@gmail.com
  * ============================================
  * 
  * FILE: app/_layout.tsx

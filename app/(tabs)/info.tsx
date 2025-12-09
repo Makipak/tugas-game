@@ -2,10 +2,9 @@
  * ============================================
  * WATERMARK DEVELOPER
  * ============================================
- * Nama        : Edi Suherlan
- * GitHub      : github/edisuherlan
- * Email       : audhighasu@gmail.com
- * Website     : audhighasu.com
+ * Nama        : muhamad farhan qolbi
+ * GitHub      : github/makipak
+ * Email       : muhamadfarhanqolbi@gmail.com
  * ============================================
  * 
  * FILE: app/(tabs)/info.tsx
@@ -155,7 +154,7 @@ export default function InfoScreen() {
                 {/* Label untuk nama */}
                 <Text style={styles.infoLabel}>Nama</Text>
                 {/* Value nama developer */}
-                <Text style={styles.infoValue}>Edi Suherlan</Text>
+                <Text style={styles.infoValue}>Muhamad Farhan Qolbi</Text>
               </View>
             </View>
 
@@ -171,7 +170,7 @@ export default function InfoScreen() {
                 <TouchableOpacity onPress={handleEmailPress}>
                   {/* Teks email dengan style link (warna cyan dan underline) */}
                   <Text style={[styles.infoValue, styles.linkText]}>
-                    edisuherlan@gmail.com
+                    muhamadfarhanqolbi@gmail.com
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -189,7 +188,7 @@ export default function InfoScreen() {
                 <TouchableOpacity onPress={handleGithubPress}>
                   {/* Teks GitHub dengan style link (warna cyan dan underline) */}
                   <Text style={[styles.infoValue, styles.linkText]}>
-                    github.com/edisuherlan
+                    github.com/makipak
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -211,6 +210,7 @@ export default function InfoScreen() {
             <Text style={styles.appDescription}>
               Pemecah Bata adalah game breakout sederhana yang dibuat dengan React Native dan Expo. 
               Game ini menampilkan fitur-fitur seperti leaderboard, pengaturan tingkat kesulitan, 
+              power-up pemantul supaya panjang, blok yang harus di pecahkan dua kali, memiliki nyawa
               dan penyimpanan data pemain secara lokal.
             </Text>
             
@@ -251,7 +251,7 @@ export default function InfoScreen() {
         {/* Footer dengan copyright dan credit */}
         <View style={styles.footer}>
           {/* Copyright text */}
-          <Text style={styles.footerText}>© 2025 Edi Suherlan</Text>
+          <Text style={styles.footerText}>© 2025 makipak</Text>
           {/* Credit text dengan emoji heart */}
           <Text style={styles.footerText}>Made with ❤️ using React Native & Expo</Text>
         </View>

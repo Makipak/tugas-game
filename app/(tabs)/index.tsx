@@ -2,10 +2,9 @@
  * ============================================
  * WATERMARK DEVELOPER
  * ============================================
- * Nama        : Edi Suherlan
- * GitHub      : github/edisuherlan
- * Email       : audhighasu@gmail.com
- * Website     : audhighasu.com
+ * Nama        : Muhamad Farhan Qolbi
+ * GitHub      : github/makipak
+ * Email       : muhamadfarhanqolbi@gmail.com
  * ============================================
  * 
  * FILE: app/(tabs)/index.tsx
@@ -76,6 +75,26 @@ interface Brick {
   destroyed: boolean;   // Status apakah bata sudah dihancurkan
 }
 
+// Add SpecialBrick interface to handle gray blocks
+interface SpecialBrick extends Brick {
+  hitsRequired: number; // Number of hits required to destroy the block
+  hitsTaken: number;    // Number of hits the block has taken
+}
+
+/**
+ * Tipe untuk Power-up
+ */
+type PowerUpType = 'WIDER_PADDLE';
+
+/**
+ * Interface untuk objek Power-up
+ */
+interface PowerUp {
+  id: number;
+  x: number;
+  y: number;
+  type: PowerUpType;
+}
 // ============================================
 // KOMPONEN UTAMA GAME
 // ============================================
@@ -90,7 +109,7 @@ export default function BreakoutGame() {
   const [gameStarted, setGameStarted] = useState(false);      // Status apakah game sudah dimulai
   const [gameOver, setGameOver] = useState(false);            // Status apakah game sudah berakhir
   const [gameWon, setGameWon] = useState(false);              // Status apakah pemain menang (semua bata hancur)
-  const [score, setScore] = useState(0);                      // Skor saat ini
+  const [score, setScore] = useState<number>(0);                      // Skor saat ini
   const scoreRef = useRef(0);                                 // Ref untuk tracking skor (untuk akses di game loop)
   const [highScore, setHighScore] = useState(0);             // Skor tertinggi pemain
   const [level, setLevel] = useState(1);                      // Level saat ini
@@ -99,7 +118,9 @@ export default function BreakoutGame() {
   const [showChangeNameForm, setShowChangeNameForm] = useState(false);    // Tampilkan form ganti nama
   const [dbInitialized, setDbInitialized] = useState(false);             // Status inisialisasi database
   const [ballSpeed, setBallSpeed] = useState(DEFAULT_BALL_SPEED);         // Kecepatan bola (dari pengaturan)
-
+  const [lives, setLives] = useState(3); // Initialize with 3 lives
+  const [powerUps, setPowerUps] = useState<PowerUp[]>([]); // State untuk power-up yang jatuh
+  
   // ============================================
   // REF UNTUK POSISI DAN VELOCITY BOLA
   // ============================================
@@ -120,7 +141,8 @@ export default function BreakoutGame() {
   // ============================================
   // Animated.Value untuk animasi posisi paddle
   const paddleX = useRef(new Animated.Value(SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2)).current;
-  // Ref untuk posisi aktual paddle
+  const paddleWidth = useRef(new Animated.Value(PADDLE_WIDTH)).current; // Animated value untuk lebar paddle
+  // Ref untuk posisi dan lebar aktual paddle
   const paddleXPos = useRef(SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2);
 
   // ============================================
@@ -132,6 +154,11 @@ export default function BreakoutGame() {
   // REF UNTUK GAME LOOP
   // ============================================
   const gameLoopRef = useRef<any>(null); // Ref untuk menyimpan ID game loop (untuk cancel jika perlu)
+
+  // ============================================
+  // STATE FOR POWER-UP
+  // ============================================
+  const [powerUpActive, setPowerUpActive] = useState(false);
 
   // ============================================
   // HANDLER UNTUK KONTROL PADDLE
@@ -156,13 +183,15 @@ export default function BreakoutGame() {
     if (!gameStarted || gameOver) return;
     
     // Ambil posisi X dari sentuhan (relatif terhadap View)
-    const touchX = evt.nativeEvent.locationX;
+    const touchX = evt.nativeEvent.locationX; 
     
     // Validasi posisi touch
     if (touchX === undefined || touchX === null) return;
     
+    const currentPaddleWidth = powerUpActive ? PADDLE_WIDTH * 1.5 : PADDLE_WIDTH;
+
     // Posisikan paddle di tengah posisi sentuhan
-    let newX = touchX - PADDLE_WIDTH / 2;
+    let newX = touchX - currentPaddleWidth / 2;
     
     // Batasi paddle agar tidak keluar dari batas layar
     newX = Math.max(0, Math.min(SCREEN_WIDTH - PADDLE_WIDTH, newX));
@@ -287,7 +316,7 @@ export default function BreakoutGame() {
    * - Level 4+: Pola kompleks dengan celah-celah
    */
   const initializeBricks = () => {
-    const newBricks: Brick[] = [];
+    const newBricks: (Brick | SpecialBrick)[] = [];
     
     // Pola berbeda untuk setiap level
     if (level === 1) {
@@ -296,15 +325,23 @@ export default function BreakoutGame() {
       const startX = (SCREEN_WIDTH - totalBrickWidth) / 2; // Posisi X awal agar bata berada di tengah
       const startY = 100 + insets.top; // Posisi Y awal (dari atas)
 
+      // Peluang untuk bata spesial (misal: 20% di level >= 2)
+      const specialBrickChance = level >= 2 ? 0.2 : 0;
+
+      const createBrick = (id: number, x: number, y: number): Brick | SpecialBrick => {
+        if (Math.random() < specialBrickChance) {
+          return { id, x, y, destroyed: false, hitsRequired: 2, hitsTaken: 0 };
+        }
+        return { id, x, y, destroyed: false };
+      };
       // Buat bata dalam pola grid
       for (let row = 0; row < BRICK_ROWS; row++) {
         for (let col = 0; col < BRICK_COLS; col++) {
-          newBricks.push({
-            id: row * BRICK_COLS + col, // ID unik berdasarkan posisi
-            x: startX + col * (BRICK_WIDTH + BRICK_SPACING), // Posisi X setiap bata
-            y: startY + row * (BRICK_HEIGHT + BRICK_SPACING), // Posisi Y setiap bata
-            destroyed: false, // Status awal: belum dihancurkan
-          });
+          newBricks.push(createBrick(
+            row * BRICK_COLS + col,
+            startX + col * (BRICK_WIDTH + BRICK_SPACING),
+            startY + row * (BRICK_HEIGHT + BRICK_SPACING)
+          ));
         }
       }
     } else if (level === 2) {
@@ -315,18 +352,26 @@ export default function BreakoutGame() {
       const startX = (SCREEN_WIDTH - totalBrickWidth) / 2;
       const startY = 100 + insets.top;
 
+      const specialBrickChance = 0.25; // 25% chance for special bricks in level 2
+
+      const createBrick = (id: number, x: number, y: number): Brick | SpecialBrick => {
+        if (Math.random() < specialBrickChance) {
+          return { id, x, y, destroyed: false, hitsRequired: 2, hitsTaken: 0 };
+        }
+        return { id, x, y, destroyed: false };
+      };
+
       for (let row = 0; row < rows; row++) {
         const bricksInRow = cols - row; // Jumlah bata berkurang setiap baris (membentuk piramida)
         const rowWidth = bricksInRow * BRICK_WIDTH + (bricksInRow - 1) * BRICK_SPACING;
         const rowStartX = startX + (cols - bricksInRow) * (BRICK_WIDTH + BRICK_SPACING) / 2; // Tengahkan baris
         
         for (let col = 0; col < bricksInRow; col++) {
-          newBricks.push({
-            id: row * 100 + col,
-            x: rowStartX + col * (BRICK_WIDTH + BRICK_SPACING),
-            y: startY + row * (BRICK_HEIGHT + BRICK_SPACING),
-            destroyed: false,
-          });
+          newBricks.push(createBrick(
+            row * 100 + col,
+            rowStartX + col * (BRICK_WIDTH + BRICK_SPACING),
+            startY + row * (BRICK_HEIGHT + BRICK_SPACING)
+          ));
         }
       }
     } else if (level === 3) {
@@ -337,6 +382,15 @@ export default function BreakoutGame() {
       const startX = (SCREEN_WIDTH - totalBrickWidth) / 2;
       const startY = 100 + insets.top;
 
+      const specialBrickChance = 0.3; // 30% chance for special bricks in level 3
+
+      const createBrick = (id: number, x: number, y: number): Brick | SpecialBrick => {
+        if (Math.random() < specialBrickChance) {
+          return { id, x, y, destroyed: false, hitsRequired: 2, hitsTaken: 0 };
+        }
+        return { id, x, y, destroyed: false };
+      };
+
       for (let row = 0; row < rows; row++) {
         const center = Math.floor(cols / 2); // Titik tengah
         const distanceFromCenter = Math.abs(row - Math.floor(rows / 2)); // Jarak dari tengah
@@ -344,12 +398,11 @@ export default function BreakoutGame() {
         const rowStartX = startX + distanceFromCenter * (BRICK_WIDTH + BRICK_SPACING); // Offset untuk tengahkan
         
         for (let col = 0; col < bricksInRow; col++) {
-          newBricks.push({
-            id: row * 100 + col,
-            x: rowStartX + col * (BRICK_WIDTH + BRICK_SPACING),
-            y: startY + row * (BRICK_HEIGHT + BRICK_SPACING),
-            destroyed: false,
-          });
+          newBricks.push(createBrick(
+            row * 100 + col,
+            rowStartX + col * (BRICK_WIDTH + BRICK_SPACING),
+            startY + row * (BRICK_HEIGHT + BRICK_SPACING)
+          ));
         }
       }
     } else {
@@ -360,17 +413,21 @@ export default function BreakoutGame() {
       const startX = (SCREEN_WIDTH - totalBrickWidth) / 2;
       const startY = 100 + insets.top;
 
+      const specialBrickChance = 0.35; // 35% chance for special bricks in level 4+
+
+      const createBrick = (id: number, x: number, y: number): Brick | SpecialBrick => {
+        if (Math.random() < specialBrickChance) {
+          return { id, x, y, destroyed: false, hitsRequired: 2, hitsTaken: 0 };
+        }
+        return { id, x, y, destroyed: false };
+      };
+
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
           // Buat pola dengan celah - skip beberapa bata untuk membuat lebih sulit
           const skipPattern = (row + col) % 3 === 0 || (row % 2 === 0 && col % 2 === 0);
           if (!skipPattern) {
-            newBricks.push({
-              id: row * 100 + col,
-              x: startX + col * (BRICK_WIDTH + BRICK_SPACING),
-              y: startY + row * (BRICK_HEIGHT + BRICK_SPACING),
-              destroyed: false,
-            });
+            newBricks.push(createBrick(row * 100 + col, startX + col * (BRICK_WIDTH + BRICK_SPACING), startY + row * (BRICK_HEIGHT + BRICK_SPACING)));
           }
         }
       }
@@ -479,6 +536,8 @@ export default function BreakoutGame() {
     setGameOver(false);
     setGameWon(false);
     setScore(0);
+    setLives(3);
+    setPowerUps([]); // Kosongkan power-up
     scoreRef.current = 0;
     
     // Reset level to 1 if requested (default is true for new game)
@@ -508,6 +567,20 @@ export default function BreakoutGame() {
     
     gameLoop();
   };
+  
+  const resetBallAndPaddle = () => {
+    // Reset ball position
+    const startX = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
+    const startY = SCREEN_HEIGHT * 0.6;
+    ballXPos.current = startX;
+    ballYPos.current = startY;
+    ballX.setValue(startX);
+    ballY.setValue(startY);
+
+    // Random initial direction
+    velocityX.current = (Math.random() > 0.5 ? 1 : -1) * ballSpeed;
+    velocityY.current = -ballSpeed;
+  }
 
   /**
    * Fungsi helper untuk memulai game dari level 1
@@ -570,9 +643,10 @@ export default function BreakoutGame() {
     // ============================================
     // COLLISION DENGAN PADDLE (PAPAN PEMANTUL)
     // ============================================
-    // Hitung posisi bounding box paddle untuk collision detection
+    const currentPaddleWidth = powerUpActive ? PADDLE_WIDTH * 1.5 : PADDLE_WIDTH;
+    // Hitung posisi bounding box paddle untuk collision detection    
     const paddleLeft = paddleXPos.current;                                    // Posisi X kiri paddle
-    const paddleRight = paddleXPos.current + PADDLE_WIDTH;                    // Posisi X kanan paddle
+    const paddleRight = paddleXPos.current + currentPaddleWidth;              // Posisi X kanan paddle
     const paddleTop = SCREEN_HEIGHT - PADDLE_HEIGHT - 30 - insets.bottom;     // Posisi Y atas paddle (30px dari bawah + safe area)
     const paddleBottom = paddleTop + PADDLE_HEIGHT;                           // Posisi Y bawah paddle
 
@@ -659,45 +733,97 @@ export default function BreakoutGame() {
         ) {
           // Bola menabrak bata - tandai bahwa ada bata yang dihancurkan
           brickDestroyed = true;
+          // Buat salinan bata untuk dimodifikasi, ini penting untuk React re-render
+          const updatedBrick = { ...brick };
           
-          // ============================================
-          // UPDATE SKOR SAAT BATA DIHANCURKAN
-          // ============================================
-          // Setiap bata yang dihancurkan memberikan 10 poin
-          setScore(prevScore => {
-            const newScore = prevScore + 10; // Tambahkan 10 poin
-            scoreRef.current = newScore;      // Update ref untuk akses di game loop
-            // Jika skor baru lebih tinggi dari high score, update high score
-            if (newScore > highScore) {
-              setHighScore(newScore);
+          // Tentukan arah pantulan
+          const ballCenterX = ballXPos.current + BALL_SIZE / 2;      // Titik tengah bola (X)
+          const ballCenterY = ballYPos.current + BALL_SIZE / 2;      // Titik tengah bola (Y)
+          const brickCenterX = updatedBrick.x + BRICK_WIDTH / 2;            // Titik tengah bata (X)
+          const brickCenterY = updatedBrick.y + BRICK_HEIGHT / 2;           // Titik tengah bata (Y)
+          const dx = ballCenterX - brickCenterX;  // Jarak horizontal
+          const dy = ballCenterY - brickCenterY;  // Jarak vertikal
+
+          // Cek apakah bata adalah SpecialBrick
+          if ('hitsRequired' in brick) {
+            // Modifikasi hanya pada salinan 'updatedBrick'
+            const specialBrick = updatedBrick as SpecialBrick;
+            specialBrick.hitsTaken += 1;
+            if (specialBrick.hitsTaken >= specialBrick.hitsRequired) {
+              specialBrick.destroyed = true;
+              setScore(prev => {
+                const newScore = prev + 50; // Skor lebih besar untuk special brick
+                scoreRef.current = newScore;
+                if (newScore > highScore) setHighScore(newScore);
+                return newScore;
+              });
+            } else {
+              // Bata spesial baru saja dipukul sekali, belum hancur
+              setScore(prev => {
+                const newScore = prev + 5; // Beri skor kecil untuk pukulan pertama
+                scoreRef.current = newScore;
+                if (newScore > highScore) setHighScore(newScore);
+                return newScore;
+              });
+
+
             }
-            return newScore;
-          });
+          } else {
+            // Bata biasa
+            updatedBrick.destroyed = true;
+            setScore(prev => {
+              const newScore = prev + 10;
+              scoreRef.current = newScore;
+              if (newScore > highScore) setHighScore(newScore);
+              return newScore;
+            });
+          }
+          
+          // Jika bata hancur, ada kemungkinan muncul power-up
+          if (updatedBrick.destroyed) {
+            // Peluang 15% untuk memunculkan power-up
+            if (Math.random() < 0.15) {
+              setPowerUps(prevPowerUps => [
+                ...prevPowerUps,
+                {
+                  id: Date.now() + Math.random(), // ID unik untuk mencegah duplikasi key
+                  x: updatedBrick.x + BRICK_WIDTH / 2,
+                  y: updatedBrick.y + BRICK_HEIGHT / 2,
+                  type: 'WIDER_PADDLE',
+                }
+              ]);
+            }
+          }
 
           // ============================================
           // PANTULAN BOLA SETELAH MENABRAK BATA
           // ============================================
-          // Hitung pusat bola dan pusat bata untuk menentukan arah pantulan
-          const ballCenterX = ballXPos.current + BALL_SIZE / 2;      // Titik tengah bola (X)
-          const ballCenterY = ballYPos.current + BALL_SIZE / 2;      // Titik tengah bola (Y)
-          const brickCenterX = brick.x + BRICK_WIDTH / 2;            // Titik tengah bata (X)
-          const brickCenterY = brick.y + BRICK_HEIGHT / 2;           // Titik tengah bata (Y)
-
-          // Hitung jarak horizontal dan vertikal antara pusat bola dan pusat bata
-          const dx = ballCenterX - brickCenterX;  // Jarak horizontal
-          const dy = ballCenterY - brickCenterY;  // Jarak vertikal
 
           // Tentukan arah pantulan berdasarkan jarak terbesar
           // Jika jarak horizontal lebih besar, pantulkan secara horizontal
           // Jika jarak vertikal lebih besar, pantulkan secara vertikal
           if (Math.abs(dx) > Math.abs(dy)) {
-            velocityX.current *= -1; // Balik arah horizontal
+            velocityX.current *= -1; // Balik arah horizontal            
+            // Dorong bola keluar dari bata secara horizontal untuk mencegah tabrakan ganda
+            if (dx > 0) { // Bola datang dari kanan bata
+              ballXPos.current = brickRight;
+            } else { // Bola datang dari kiri bata
+              ballXPos.current = brickLeft - BALL_SIZE;
+            }
           } else {
-            velocityY.current *= -1; // Balik arah vertikal
+            velocityY.current *= -1; // Balik arah vertikal            
+            // Dorong bola keluar dari bata secara vertikal
+            if (dy > 0) { // Bola datang dari bawah bata
+              ballYPos.current = brickBottom;
+            } else { // Bola datang dari atas bata
+              ballYPos.current = brickTop - BALL_SIZE;
+            }
           }
+          ballX.setValue(ballXPos.current);
+          ballY.setValue(ballYPos.current);
 
           // Tandai bata sebagai dihancurkan dan kembalikan bata yang sudah diupdate
-          return { ...brick, destroyed: true };
+          return updatedBrick;
         }
 
         // Jika tidak ada collision, kembalikan bata tanpa perubahan
@@ -750,26 +876,71 @@ export default function BreakoutGame() {
     });
 
     // ============================================
+    // COLLISION POWER-UP DENGAN PADDLE
+    // ============================================
+    setPowerUps(prevPowerUps => 
+      prevPowerUps.filter(powerUp => {
+        // Cek collision dengan paddle
+        const powerUpBottom = powerUp.y + 20; // Asumsi ukuran power-up 20x20
+        if (
+          powerUpBottom >= paddleTop &&
+          powerUp.x >= paddleLeft &&
+          powerUp.x <= paddleRight
+        ) {
+          // Power-up tertangkap
+          if (powerUp.type === 'WIDER_PADDLE') {
+            setPowerUpActive(true);
+            // Animasikan lebar paddle
+            Animated.timing(paddleWidth, {
+              toValue: PADDLE_WIDTH * 1.5,
+              duration: 300,
+              useNativeDriver: false,
+            }).start();
+            // Set timer untuk menonaktifkan power-up
+            setTimeout(() => {
+              setPowerUpActive(false);
+              Animated.timing(paddleWidth, {
+                toValue: PADDLE_WIDTH,
+                duration: 300,
+                useNativeDriver: false,
+              }).start();
+            }, 10000); // Power-up aktif selama 10 detik
+          }
+          return false; // Hapus power-up dari array
+        }
+        // Hapus power-up jika sudah keluar layar
+        return powerUp.y < SCREEN_HEIGHT;
+      })
+    );
+
+    // ============================================
     // CEK GAME OVER (BOLA JATUH DI BAWAH PADDLE)
     // ============================================
     // Jika bagian atas bola melewati batas bawah layar, game over
-    // Ini berarti pemain gagal menangkap bola dengan paddle
     if (ballTop > SCREEN_HEIGHT) {
-      // Set status game: tidak menang, game berakhir, game tidak lagi berjalan
-      setGameWon(false);
-      setGameOver(true);
-      setGameStarted(false);
-      
-      // Simpan skor ke database jika ada current player
-      if (currentPlayer) {
-        const finalScore = scoreRef.current; // Ambil skor final dari ref
-        console.log('Saving score (game over):', finalScore, 'for player:', currentPlayer.name);
-        // Simpan skor ke database (async, tidak perlu await karena tidak blocking)
-        // Jika skor lebih tinggi dari high score, akan otomatis diupdate di database
-        updatePlayerScore(currentPlayer.id, finalScore, level).catch(error => {
-          console.error('Error saving score:', error);
-        });
-      }
+      setLives(prevLives => {
+        const newLives = prevLives - 1;
+        if (newLives > 0) {
+          // Masih ada nyawa, reset bola
+          resetBallAndPaddle();
+          return newLives;
+        } else {
+          // Nyawa habis, game over
+          setGameWon(false);
+          setGameOver(true);
+          setGameStarted(false);
+          
+          if (currentPlayer) {
+            const finalScore = scoreRef.current;
+            console.log('Saving score (game over):', finalScore, 'for player:', currentPlayer.name);
+            updatePlayerScore(currentPlayer.id, finalScore, level).catch(error => {
+              console.error('Error saving score:', error);
+            });
+          }
+          setPowerUpActive(false); // Reset power-up
+          return 0;
+        }
+      });
     }
   };
 
@@ -803,6 +974,13 @@ export default function BreakoutGame() {
       checkCollisions();
 
       // ============================================
+      // UPDATE POSISI POWER-UP
+      // ============================================
+      setPowerUps(prev => 
+        prev.map(p => ({ ...p, y: p.y + 3 })) // Jatuhkan power-up ke bawah
+      );
+
+      // ============================================
       // HITUNG POSISI BARU BOLA
       // ============================================
       // Hitung posisi baru berdasarkan posisi saat ini + velocity
@@ -814,9 +992,10 @@ export default function BreakoutGame() {
       // ============================================
       // Ini adalah safety check tambahan untuk memastikan bola tidak melewati paddle
       // Hitung posisi paddle
+      const currentPaddleWidth = powerUpActive ? PADDLE_WIDTH * 1.5 : PADDLE_WIDTH;
       const paddleTop = SCREEN_HEIGHT - PADDLE_HEIGHT - 30 - insets.bottom;
       const paddleLeft = paddleXPos.current;
-      const paddleRight = paddleXPos.current + PADDLE_WIDTH;
+      const paddleRight = paddleXPos.current + currentPaddleWidth;
       
       // Jika bola bergerak ke bawah, cek apakah akan melewati paddle
       if (velocityY.current > 0) {
@@ -836,7 +1015,7 @@ export default function BreakoutGame() {
             velocityY.current *= -1;
             // Tambahkan sudut pantulan berdasarkan posisi hit di paddle
             const ballCenterX = newX + BALL_SIZE / 2;
-            const hitPosition = Math.max(0, Math.min(1, (ballCenterX - paddleLeft) / PADDLE_WIDTH));
+            const hitPosition = Math.max(0, Math.min(1, (ballCenterX - paddleLeft) / currentPaddleWidth));
             velocityX.current = (hitPosition - 0.5) * ballSpeed * 2;
           }
         }
@@ -889,23 +1068,46 @@ export default function BreakoutGame() {
   }, [gameStarted, gameOver, bricks]);
 
   const renderBricks = () => {
-    return bricks.map((brick) => {
+    return bricks.map((brick: Brick | SpecialBrick) => {
       if (brick.destroyed) return null;
+
+      let backgroundColor = getBrickColor(brick.id);
+      // Cek apakah ini SpecialBrick
+      if ('hitsRequired' in brick) {
+        if (brick.hitsTaken === 0) {
+          backgroundColor = '#bdc3c7'; // Warna silver/abu-abu awal
+        } else {
+          backgroundColor = '#7f8c8d'; // Warna "retak" setelah 1 pukulan
+        }
+      }
 
       return (
         <View
           key={brick.id}
           style={[
             styles.brick,
-            {
-              left: brick.x,
-              top: brick.y,
-              backgroundColor: getBrickColor(brick.id),
-            },
+            { left: brick.x, top: brick.y, backgroundColor },
           ]}
         />
       );
     });
+  };
+
+  const renderPowerUps = () => {
+    return powerUps.map(powerUp => (
+      <View
+        key={powerUp.id}
+        style={[
+          styles.powerUp,
+          {
+            left: powerUp.x,
+            top: powerUp.y,
+          },
+        ]}
+      >
+        <Text style={styles.powerUpText}>W</Text>
+      </View>
+    ));
   };
 
   const getBrickColor = (id: number): string => {
@@ -936,6 +1138,8 @@ export default function BreakoutGame() {
         <Text style={styles.highScoreText}>Skor Tertinggi: {highScore}</Text>
         {/* Tampilkan level saat ini */}
         <Text style={styles.levelText}>Level: {level}</Text>
+        {/* Tampilkan nyawa */}
+        <Text style={styles.livesText}>Nyawa: {lives}</Text>
       </View>
 
       {/* ============================================
@@ -949,6 +1153,9 @@ export default function BreakoutGame() {
       >
         {/* Render semua bata yang belum dihancurkan */}
         {renderBricks()}
+
+        {/* Render semua power-up yang jatuh */}
+        {renderPowerUps()}
 
         {/* Bola yang bergerak - menggunakan Animated.View untuk animasi smooth */}
         <Animated.View
@@ -966,6 +1173,7 @@ export default function BreakoutGame() {
           style={[
             styles.paddle,  // Style dasar paddle
             {
+              width: paddleWidth,               // Lebar dari animated value
               left: paddleX,                    // Posisi X dari animated value
               bottom: 30 + insets.bottom,        // Posisi Y dari bawah (30px + safe area)
             },
@@ -1110,7 +1318,7 @@ const styles = StyleSheet.create({
   // Container untuk menampilkan skor, high score, dan level
   scoreContainer: {
     position: 'absolute',        // Posisi absolut agar berada di atas elemen lain
-    top: 60,                     // 60px dari atas
+    top: 40,                     // 40px dari atas
     left: 0,                     // Mulai dari kiri
     right: 0,                    // Sampai ke kanan
     alignItems: 'center',        // Tengahkan konten secara horizontal
@@ -1184,6 +1392,30 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 }, // Offset shadow (ke bawah)
     shadowOpacity: 0.3,           // Opasitas shadow 30%
     shadowRadius: 4,             // Radius blur shadow
+  },
+
+  // Style untuk power-up yang jatuh
+  powerUp: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    backgroundColor: '#f1c40f', // Warna kuning
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+  },
+
+  // Style untuk teks di dalam power-up
+  powerUpText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   
   // Overlay background untuk modal (form, game over, dll)
@@ -1293,5 +1525,13 @@ const styles = StyleSheet.create({
   level1Button: {
     backgroundColor: '#f39c12',  // Background warna orange
     marginTop: 10,                // Jarak atas 10px
+  },
+
+  // Style untuk teks jumlah nyawa
+  livesText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginTop: 4,
   },
 });

@@ -2,10 +2,9 @@
  * ============================================
  * WATERMARK DEVELOPER
  * ============================================
- * Nama        : Edi Suherlan
- * GitHub      : github/edisuherlan
- * Email       : audhighasu@gmail.com
- * Website     : audhighasu.com
+ * Nama        : muhamad farhan qolbi
+ * GitHub      : github/makipak
+ * Email       : muhamadfarhanqolbi@gmail.com
  * ============================================
  * 
  * FILE: app/(tabs)/settings.tsx
@@ -373,7 +372,7 @@ export default function SettingsScreen() {
         {/* Section untuk menampilkan informasi tentang pengaturan */}
         <View style={styles.infoSection}>
           {/* Judul section informasi */}
-          <Text style={styles.infoTitle}>ℹ️ Informasi</Text>
+          <Text style={styles.infoTitle}>Informasi</Text>
           
           {/* Teks informasi tentang pengaturan */}
           <Text style={styles.infoText}>
