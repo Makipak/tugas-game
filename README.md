@@ -1,6 +1,6 @@
 # 🧱 Pemecah Bata - Game Breakout Sederhana
 
-![Gameplay](asset/screenshot/gameplay.png)
+![Gameplay](asset/screenshots/Screenshot_1765245448)
 
 Selamat datang di **Pemecah Bata**, sebuah game _breakout_ klasik yang dibuat dengan React Native dan Expo. Hancurkan semua bata untuk memenangkan permainan, kumpulkan skor tertinggi, dan jadilah yang terbaik di papan peringkat!
 
@@ -31,7 +31,7 @@ Game ini dilengkapi dengan berbagai fitur untuk meningkatkan pengalaman bermain:
 
 | Halaman Utama | Papan Peringkat | Pengaturan |
 | :---: | :---: | :---: |
-| ![Halaman Utama](asset/screenshot/main_menu.png) | ![Papan Peringkat](asset/screenshot/leaderboard.png) | ![Pengaturan](asset/screenshot/settings.png) |
+| ![Info](assets/screenshots/Screenshot_1765245578.png) | ![Papan Peringkat](assets/screenshots/Screenshot_1765245467.png) | ![Pengaturan](assets/screenshots/Screenshot_1765245460.png) |
 
 ## 🛠️ Teknologi yang Digunakan
 
