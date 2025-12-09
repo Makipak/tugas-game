@@ -241,6 +241,21 @@ export default function InfoScreen() {
                 <MaterialIcons name="check-circle" size={20} color="#4ecdc4" />
                 <Text style={styles.featureText}>Ganti nama pemain</Text>
               </View>
+
+              <View style={styles.featureItem}>
+                <MaterialIcons name="check-circle" size={20} color="#4ecdc4" />
+                <Text style={styles.featureText}>Power-up</Text>
+              </View>
+              
+              <View style={styles.featureItem}>
+                <MaterialIcons name="check-circle" size={20} color="#4ecdc4" />
+                <Text style={styles.featureText}>Nyawa</Text>
+              </View>
+
+              <View style={styles.featureItem}>
+                <MaterialIcons name="check-circle" size={20} color="#4ecdc4" />
+                <Text style={styles.featureText}>Block silver super</Text>
+              </View>
             </View>
           </View>
         </View>
